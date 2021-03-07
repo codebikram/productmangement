@@ -1,0 +1,16 @@
+# Dependency directories
+node_modules/
+
+# Optional npm cache directory
+.npm
+
+# dotenv environment variables file
+.env
+log/
+public/
+*.log
+*.log.*
+
+# VSCode
+.vscode/*
+!.vscode/settings.json
