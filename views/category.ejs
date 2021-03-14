@@ -12,14 +12,14 @@
     <title><%= title %></title>
   </head>
   <body>
-    <h1 class="text-center">Product Management</h1>
+    <h1 class="text-center">category Management</h1>
     <button
       type="button"
       class="btn btn-info pull-right"
       data-toggle="modal"
       data-target="#myModal"
     >
-      Add Product
+      Add category
     </button>
 
     <!-- Modal -->
@@ -36,30 +36,15 @@
           <div class="modal-body">
             <form>
               <div class="form-group">
-                <label for="category">select category:</label>
-                <select name="category" id="category">
-                  <%for(var i=0; i< categoryList.length;i++){%>
-                  <option value="<%=categoryList[i]._id%>">
-                    <%=categoryList[i].name%>
-                  </option>
-                  <%}%>
-                </select>
-              </div>
-              <div class="form-group">
                 <label for="name">Name</label>
                 <input type="text" class="form-control" id="name" />
               </div>
               <div class="form-group">
-                <label for="qty">Quantity:</label>
-                <input type="number" class="form-control" id="qty" />
-              </div>
-              <div class="form-group">
-                <label for="price">Price:</label>
-                <input type="number" class="form-control" id="price" />
-              </div>
-              <div class="form-group">
-                <label for="discount">Discount:</label>
-                <input type="number" class="form-control" id="discount" />
+                <label for="status">status:</label>
+                <select name="status" id="status">
+                  <option value="Y">Active</option>
+                  <option value="N">Non-active</option>
+                </select>
               </div>
               <button type="button" class="btn btn-default btn_add">
                 Save
@@ -74,74 +59,52 @@
         </div>
       </div>
     </div>
-    <%if(product && product.length>0){%>
-    <table class="table">
+    <table class="table table-hover tbl_category">
       <thead>
         <tr>
-          <th>category</th>
           <th>Name</th>
-          <th>Qty</th>
-          <th>Price</th>
-          <th>discount</th>
-          <th>Actual Price</th>
+          <th>status</th>
           <th></th>
           <th></th>
         </tr>
       </thead>
       <tbody>
-        <% for(var i=0; i< product.length;i++){%>
+        <% for(var i=0; i< categoryList.length;i++){%>
         <tr>
-          <%if(product[i].categoryId){%>
-          <td class="<%= product[i].categoryId._id%>">
-            <%= product[i].categoryId.name%>
-          </td>
-          <%}else{%>
-          <td class="">NA</td>
-          <%}%>
-          <td class="name"><%= product[i].name%></td>
-          <td class="qty"><%= product[i].qty%></td>
-          <td class="price"><%= product[i].price%></td>
-          <td class="discount"><%= product[i].discount%></td>
-          <td><%=product[i].actualPrice%></td>
+          <td class="name"><%= categoryList[i].name%></td>
+          <td class="status"><%= categoryList[i].status%></td>
           <td>
             <button
               type="button"
               class="btn btn-success glyphicon glyphicon-edit btn_edit"
-              value="<%=product[i]._id%>"
+              value="<%=categoryList[i]._id%>"
             ></button>
           </td>
           <td>
             <button
               type="button"
               class="btn btn-danger glyphicon glyphicon-trash btn_delete"
-              value="<%=product[i]._id%>"
+              value="<%=categoryList[i]._id%>"
             ></button>
           </td>
         </tr>
         <%}%>
       </tbody>
     </table>
-    <%}else{%>
-    <h3 class="text-center">No product available</h3>
-    <%}%>
   </body>
   <script>
     $(document).ready(function () {
       $(document).on("click", ".btn_update", function () {
         var id = $(this).val();
         var name = $(this).closest("tr").find(".txt_name").val();
-        var qty = $(this).closest("tr").find(".txt_qty").val();
-        var price = $(this).closest("tr").find(".txt_price").val();
-        var discount = $(this).closest("tr").find(".txt_discount").val();
+        var status = $(this).closest("tr").find(".txt_status").val();
         var data = {
           id: id,
           name: name,
-          qty: qty,
-          price: price,
-          discount: discount,
+          status: status,
         };
         $.ajax({
-          url: "/product-update",
+          url: "/category-update",
           type: "POST",
           data: data,
           success: function (res) {
@@ -166,26 +129,12 @@
           .closest("tr")
           .find(".name")
           .html("<input type='text' class='txt_name' value='" + name + "' />");
-        var qty = $(this).closest("tr").find(".qty").text();
+        var status = $(this).closest("tr").find(".status").text();
         $(this)
           .closest("tr")
-          .find(".qty")
-          .html("<input type='number' class='txt_qty' value='" + qty + "' />");
-        var price = $(this).closest("tr").find(".price").text();
-        $(this)
-          .closest("tr")
-          .find(".price")
+          .find(".status")
           .html(
-            "<input type='number' class='txt_price' value='" + price + "' />"
-          );
-        var discount = $(this).closest("tr").find(".discount").text();
-        $(this)
-          .closest("tr")
-          .find(".discount")
-          .html(
-            "<input type='number' class='txt_discount' value='" +
-              discount +
-              "' />"
+            "<input type='text' class='txt_status' value='" + status + "' />"
           );
       });
       $(document).on("click", ".btn_delete", function () {
@@ -195,7 +144,7 @@
         }
         var id = $(this).val();
         $.ajax({
-          url: "/product-delete",
+          url: "/category-delete",
           type: "POST",
           data: { id: id },
           success: function (res) {
@@ -211,23 +160,13 @@
       });
       $(document).on("click", ".btn_add", function () {
         var name = $("#name").val();
-        var qty = $("#qty").val();
-        var price = $("#price").val();
-        var discount = $("#discount").val();
-        var categoryId = $("#category").val();
-        if (!name || !qty || !price || !discount) {
-          alert("All field are required");
-          return;
-        }
+        var status = $("#status").val();
         var data = {
           name: name,
-          qty: qty,
-          price: price,
-          discount: discount,
-          categoryId: categoryId,
+          status: status,
         };
         $.ajax({
-          url: "/product-data",
+          url: "/category-data",
           type: "POST",
           data: data,
           success: function (res) {
@@ -240,6 +179,18 @@
             }
           },
         });
+      });
+      $(document).on("click", ".tbl_category tbody tr", function () {
+        var categoryID = $(this).closest("tr").find(".btn_delete").val();
+        window.location.href =
+          window.location.pathname.split("/")[0] +
+          "/product?categoryId=" +
+          categoryID;
+        // console.log(
+        //   window.location.pathname.split("/")[0] +
+        //     "/product?categoryId=" +
+        //     categoryID
+        // );
       });
     });
   </script>

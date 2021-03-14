@@ -1,9 +1,14 @@
+// #region ALL require file
 var express = require("express");
 var router = express.Router();
 const product = require("./Model/product");
+const category = require("./Model/category");
 const user = require("./Model/user");
 var bcrypt = require("bcryptjs");
+
+// #endregion
 /* GET home page. */
+
 router.get("/", function (req, res, next) {
   res.render("index", { title: "STEP TO SOFT" });
 });
@@ -12,14 +17,23 @@ router.get("/employee", function (req, res, next) {
 });
 // #region product section
 router.get("/product", async function (req, res, next) {
-  var productList = await product.find({});
+  var searchFilter = {};
+  if (req.query.categoryId) {
+    searchFilter.categoryId = req.query.categoryId;
+  }
+  var productList = await product.find(searchFilter).populate("categoryId");
+  var categoryList = await category.find({});
   for (var i = 0; i < productList.length; i++) {
     var actualPrice =
       Number(productList[i].price) -
       (Number(productList[i].price) * Number(productList[i].discount)) / 100;
     productList[i].actualPrice = actualPrice;
   }
-  res.render("product", { title: "product", product: productList });
+  res.render("product", {
+    title: "product",
+    product: productList,
+    categoryList: categoryList,
+  });
 });
 router.post("/product-update", async function (req, res, next) {
   var updateData = req.body;
@@ -60,6 +74,7 @@ router.post("/product-data", async function (req, res, next) {
       qty: productData.qty ? Number(productData.qty) : 0,
       price: productData.price ? Number(productData.price) : 0,
       discount: productData.discount ? Number(productData.discount) : 0,
+      categoryId: productData.categoryId,
     };
     const createProduct = await product.create(data);
     if (createProduct) {
@@ -67,6 +82,58 @@ router.post("/product-data", async function (req, res, next) {
     } else {
       res.send({ error: "Something went wrong" });
     }
+  }
+});
+// #endregion
+
+// #region category section
+router.get("/category", async function (req, res, next) {
+  const categoryList = await category.find({});
+  res.render("category", { title: "category", categoryList: categoryList });
+});
+
+router.post("/category-data", async function (req, res, next) {
+  var categoryData = req.body;
+  if (categoryData) {
+    categoryData = JSON.parse(JSON.stringify(categoryData));
+    var data = {
+      name: categoryData.name,
+      status: categoryData.status,
+    };
+    const createResponse = await category.create(data);
+    if (createResponse) {
+      res.send({ success: "category added successfully" });
+    } else {
+      res.send({ error: "Something went wrong" });
+    }
+  }
+});
+router.post("/category-update", async function (req, res, next) {
+  var updateData = req.body;
+  if (updateData) {
+    updateData = JSON.parse(JSON.stringify(updateData));
+    var data = {
+      name: updateData.name,
+      status: updateData.status,
+    };
+    const updateCategory = await category.update(
+      { _id: updateData.id },
+      { $set: data }
+    );
+    if (updateCategory) {
+      res.send({ success: "category Updated successfully" });
+    } else {
+      res.send({ error: "Something went wrong" });
+    }
+  }
+});
+router.post("/category-delete", async function (req, res, next) {
+  var id = req.body.id;
+  if (id) {
+    const deleteResponse = await category.remove({ _id: id });
+    res.send({ success: "category deleted successfully" });
+  } else {
+    res.send({ error: "Id is required" });
   }
 });
 // #endregion
