@@ -12,6 +12,9 @@
     <title><%= title %></title>
   </head>
   <body>
+    <button type="button" class="btn btn-primary btn_logout pull-right">
+      Logout
+    </button>
     <h1 class="text-center">Product Management</h1>
     <button
       type="button"
@@ -240,6 +243,10 @@
             }
           },
         });
+      });
+      $(document).on("click", ".btn_logout", function () {
+        window.location.href =
+          window.location.pathname.split("/")[0] + "/logout";
       });
     });
   </script>

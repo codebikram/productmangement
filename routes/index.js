@@ -5,18 +5,26 @@ const product = require("./Model/product");
 const category = require("./Model/category");
 const user = require("./Model/user");
 var bcrypt = require("bcryptjs");
+var jwt = require("jsonwebtoken");
 
 // #endregion
 /* GET home page. */
-
+const isValid = (req, res, next) => {
+  var cookie = req.cookies.token;
+  if (cookie) {
+    next();
+  } else {
+    res.redirect("/login");
+  }
+};
 router.get("/", function (req, res, next) {
   res.render("index", { title: "STEP TO SOFT" });
 });
-router.get("/employee", function (req, res, next) {
+router.get("/employee", isValid, function (req, res, next) {
   res.render("employee", { title: "employee" });
 });
 // #region product section
-router.get("/product", async function (req, res, next) {
+router.get("/product", isValid, async function (req, res, next) {
   var searchFilter = {};
   if (req.query.categoryId) {
     searchFilter.categoryId = req.query.categoryId;
@@ -87,7 +95,7 @@ router.post("/product-data", async function (req, res, next) {
 // #endregion
 
 // #region category section
-router.get("/category", async function (req, res, next) {
+router.get("/category", isValid, async function (req, res, next) {
   const categoryList = await category.find({});
   res.render("category", { title: "category", categoryList: categoryList });
 });
@@ -142,6 +150,10 @@ router.post("/category-delete", async function (req, res, next) {
 router.get("/login", function (req, res, next) {
   res.render("login", { title: "Login" });
 });
+router.get("/logout", function (req, res, next) {
+  res.clearCookie("token");
+  res.render("login", { title: "Login" });
+});
 router.get("/signup", function (req, res, next) {
   res.render("signup", { title: "signup" });
 });
@@ -153,14 +165,33 @@ router.post("/login-data", async function (req, res, next) {
     const isUserExist = await user.findOne({ email: email });
     if (isUserExist) {
       // email match
-      bcrypt.compare(password, isUserExist.password, function (err, result) {
-        // result === true
-        if (result) {
-          res.send({ success: "login success" });
-        } else {
-          res.send({ error: "Password not match" });
+      bcrypt.compare(
+        password,
+        isUserExist.password,
+        async function (err, result) {
+          // result === true
+          if (result) {
+            //jwt
+            await jwt.sign(
+              {
+                data: isUserExist,
+              },
+              "mysecret",
+              { expiresIn: 60 * 60 },
+              (err, token) => {
+                if (err) {
+                  console.log(err);
+                } else {
+                  res.cookie("token", token);
+                  res.send({ success: "login success" });
+                }
+              }
+            );
+          } else {
+            res.send({ error: "Password not match" });
+          }
         }
-      });
+      );
     } else {
       res.send({ error: "user not found" });
     }
