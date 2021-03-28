@@ -24,7 +24,17 @@
     >
       Add Product
     </button>
-
+    <form class="locationform" enctype="multipart/form-data">
+      <input
+        style="display: inline"
+        type="file"
+        accept=".csv"
+        class="btn btn-primary locationfile"
+        name="products"
+        value="Import CSV"
+      />
+      <input type="button" class="btn btn-primary btn_csv_loc" value="Upload" />
+    </form>
     <!-- Modal -->
     <div id="myModal" class="modal fade" role="dialog">
       <div class="modal-dialog">
@@ -247,6 +257,40 @@
       $(document).on("click", ".btn_logout", function () {
         window.location.href =
           window.location.pathname.split("/")[0] + "/logout";
+      });
+      $(document).on("click", ".btn_csv_loc", function () {
+        var files = $(this).closest(".locationform").find(".locationfile")[0]
+          .files;
+        if (files.length > 0) {
+          var form = $(this).closest(".locationform")[0];
+          console.log(form);
+          var data = new FormData(form);
+          $.ajax({
+            type: "POST",
+            enctype: "multipart/form-data",
+            data: data,
+            url: "/create_location_viaCSV",
+            processData: false, //prevent jQuery from automatically transforming the data into a query string
+            contentType: false,
+            cache: false,
+          })
+            .done(function (res) {
+              if (res.Error) {
+                alert(
+                  "Please Upload Valid CSV File" + JSON.stringify(res.Error)
+                );
+                console.log(res.Error);
+              } else if (res.Success) {
+                alert(res);
+                window.location.reload();
+              }
+            })
+            .catch(function (err) {
+              console.log(err);
+            });
+        } else {
+          alert("file not selected");
+        }
       });
     });
   </script>
