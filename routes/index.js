@@ -11,28 +11,38 @@ const upload = multer({ dest: "tmp/csv/" });
 var csv = require("csvtojson");
 // #endregion
 /* GET home page. */
+
 const isValid = (req, res, next) => {
   var cookie = req.cookies.token;
-  if (cookie) {
-    next();
-  } else {
+  // console.log(cookie);
+  if (!cookie) {
     res.redirect("/login");
   }
+  try {
+    const data = jwt.verify(cookie, "mysecret");
+    req.user = data.user;
+    // console.log(req.user);
+    next()
+  } catch (error) {
+    res.status(401).send({ error: "please authenticate using  valid token" })
+  }
 };
-router.get("/", function (req, res, next) {
+router.get("/", function (req, res) {
   res.render("index", { title: "STEP TO SOFT" });
 });
-router.get("/employee", isValid, function (req, res, next) {
+router.get("/employee", isValid, function (req, res) {
   res.render("employee", { title: "employee" });
 });
+
 // #region product section
-router.get("/product", isValid, async function (req, res, next) {
+router.get("/product", isValid, async function (req, res) {
   var searchFilter = {};
   if (req.query.categoryId) {
     searchFilter.categoryId = req.query.categoryId;
   }
   var productList = await product.find(searchFilter).populate("categoryId");
-  var categoryList = await category.find({});
+  var categoryList = await category.find({ user: req.user });
+  // console.log("categoryList---->"+categoryList);
   for (var i = 0; i < productList.length; i++) {
     var actualPrice =
       Number(productList[i].price) -
@@ -40,12 +50,12 @@ router.get("/product", isValid, async function (req, res, next) {
     productList[i].actualPrice = actualPrice;
   }
   res.render("product", {
-    title: "product",
+    title: "Product",
     product: productList,
     categoryList: categoryList,
   });
 });
-router.post("/product-update", async function (req, res, next) {
+router.post("/product-update", async function (req, res) {
   var updateData = req.body;
   if (updateData) {
     updateData = JSON.parse(JSON.stringify(updateData));
@@ -55,7 +65,7 @@ router.post("/product-update", async function (req, res, next) {
       price: updateData.price ? Number(updateData.price) : 0,
       discount: updateData.discount ? Number(updateData.discount) : 0,
     };
-    const updateProduct = await product.update(
+    const updateProduct = await product.updateOne(
       { _id: updateData.id },
       { $set: data }
     );
@@ -66,16 +76,16 @@ router.post("/product-update", async function (req, res, next) {
     }
   }
 });
-router.post("/product-delete", async function (req, res, next) {
+router.post("/product-delete", async function (req, res) {
   var id = req.body.id;
   if (id) {
-    const deleteResponse = await product.remove({ _id: id });
+    const deleteResponse = await product.deleteOne({ _id: id });
     res.send({ success: "Product deleted successfully" });
   } else {
     res.send({ error: "Id is required" });
   }
 });
-router.post("/product-data", async function (req, res, next) {
+router.post("/product-data", async function (req, res) {
   var productData = req.body;
   if (productData) {
     productData = JSON.parse(JSON.stringify(productData));
@@ -94,10 +104,10 @@ router.post("/product-data", async function (req, res, next) {
     }
   }
 });
-router.post(
-  "/create_location_viaCSV",
+//csv
+router.post("/create_location_viaCSV",
   upload.single("products"),
-  (req, res, next) => {
+  (req, res) => {
     var failureArray = [];
     const csvFilePath = req.file.path;
     if (csvFilePath) {
@@ -105,7 +115,7 @@ router.post(
         .fromFile(csvFilePath)
         .then((jsonObj) => {
           var csvjson = jsonObj;
-          // console.log("csvjson", JSON.stringify(csvjson));
+          console.log("csvjson", JSON.stringify(csvjson));
           for (let i = 0, p = Promise.resolve(); i < csvjson.length; i++) {
             p = p.then(
               (_) =>
@@ -124,7 +134,7 @@ router.post(
                       console.log(err);
                       resolve();
                     } else {
-                      //console.log(result);
+                      console.log(result);
                       if (i == csvjson.length - 1) {
                         res.send({
                           Success: " CSV file Successfully Inserted",
@@ -144,16 +154,22 @@ router.post(
 // #endregion
 
 // #region category section
-router.get("/category", isValid, async function (req, res, next) {
-  const categoryList = await category.find({});
-  res.render("category", { title: "category", categoryList: categoryList });
+router.get("/category", isValid, async function (req, res) {
+  try {
+    const categoryList = await category.find({ user: req.user });
+    res.render("category", { title: "category", categoryList: categoryList });
+  } catch (error) {
+    res.status(404).send({ error: "Not found" })
+  }
+
 });
 
-router.post("/category-data", async function (req, res, next) {
+router.post("/category-data", isValid, async function (req, res) {
   var categoryData = req.body;
   if (categoryData) {
     categoryData = JSON.parse(JSON.stringify(categoryData));
     var data = {
+      user: req.user,
       name: categoryData.name,
       status: categoryData.status,
     };
@@ -165,7 +181,7 @@ router.post("/category-data", async function (req, res, next) {
     }
   }
 });
-router.post("/category-update", async function (req, res, next) {
+router.post("/category-update", async function (req, res) {
   var updateData = req.body;
   if (updateData) {
     updateData = JSON.parse(JSON.stringify(updateData));
@@ -173,7 +189,7 @@ router.post("/category-update", async function (req, res, next) {
       name: updateData.name,
       status: updateData.status,
     };
-    const updateCategory = await category.update(
+    const updateCategory = await category.updateOne(
       { _id: updateData.id },
       { $set: data }
     );
@@ -184,10 +200,10 @@ router.post("/category-update", async function (req, res, next) {
     }
   }
 });
-router.post("/category-delete", async function (req, res, next) {
+router.post("/category-delete", async function (req, res) {
   var id = req.body.id;
   if (id) {
-    const deleteResponse = await category.remove({ _id: id });
+    const deleteResponse = await category.deleteOne({ _id: id });
     res.send({ success: "category deleted successfully" });
   } else {
     res.send({ error: "Id is required" });
@@ -196,17 +212,17 @@ router.post("/category-delete", async function (req, res, next) {
 // #endregion
 
 // #region Auth secton
-router.get("/login", function (req, res, next) {
+router.get("/login", function (req, res) {
   res.render("login", { title: "Login" });
 });
-router.get("/logout", function (req, res, next) {
+router.get("/logout", function (req, res) {
   res.clearCookie("token");
   res.render("login", { title: "Login" });
 });
-router.get("/signup", function (req, res, next) {
+router.get("/signup", function (req, res) {
   res.render("signup", { title: "signup" });
 });
-router.post("/login-data", async function (req, res, next) {
+router.post("/login-data", async function (req, res) {
   if (req.body) {
     req.body = JSON.parse(JSON.stringify(req.body));
     var email = req.body.email;
@@ -223,7 +239,7 @@ router.post("/login-data", async function (req, res, next) {
             //jwt
             await jwt.sign(
               {
-                data: isUserExist,
+                user: isUserExist._id,
               },
               "mysecret",
               { expiresIn: 60 * 60 },
@@ -246,7 +262,7 @@ router.post("/login-data", async function (req, res, next) {
     }
   }
 });
-router.post("/signup-data", async function (req, res, next) {
+router.post("/signup-data", async function (req, res) {
   if (req.body) {
     req.body = JSON.parse(JSON.stringify(req.body));
     var email = req.body.email;
