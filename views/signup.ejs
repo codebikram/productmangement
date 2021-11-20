@@ -1,81 +1,104 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/stylesheets/style.css" />
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
-    />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-  </head>
-  <body>
-    <div class="container">
-      <div class="row">
-        <div class="col-md-3"></div>
-        <div class="col-md-6">
-          <form class="form-horizontal">
-            <div class="form-group">
-              <label class="control-label col-sm-2" for="email">Email:</label>
-              <div class="col-sm-10">
-                <input
-                  type="email"
-                  class="form-control"
-                  id="email"
-                  placeholder="Enter email"
-                />
+<html lang="en">
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title><%=title%></title>
+
+  <!-- Font Icon -->
+  <link rel="stylesheet" href="fonts/material-icon/css/material-design-iconic-font.min.css">
+
+  <!-- Main css -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <div class="main">
+
+    <!-- Sign up form -->
+    <section class="signup">
+      <div class="container">
+        <div class="signup-content">
+          <div class="signup-form">
+            <h2 class="form-title">Sign up</h2>
+            <form method="POST" class="register-form" id="register-form">
+              <div class="form-group">
+                <label for="name"><i class="zmdi zmdi-account material-icons-name"></i></label>
+                <input type="text" name="name" id="name" placeholder="Your Name" />
               </div>
-            </div>
-            <div class="form-group">
-              <label class="control-label col-sm-2" for="pwd">Password:</label>
-              <div class="col-sm-10">
-                <input
-                  type="password"
-                  class="form-control"
-                  id="pwd"
-                  placeholder="Enter password"
-                />
+              <div class="form-group">
+                <label for="email"><i class="zmdi zmdi-email"></i></label>
+                <input type="email" name="email" id="email" placeholder="Your Email" />
               </div>
-            </div>
-            <div class="form-group">
-              <label class="control-label col-sm-2" for="cpwd"
-                >confirm Password:</label
-              >
-              <div class="col-sm-10">
-                <input
-                  type="password"
-                  class="form-control"
-                  id="cpwd"
-                  placeholder="Enter confirm password"
-                />
+              <div class="form-group">
+                <label for="pass"><i class="zmdi zmdi-lock"></i></label>
+                <input type="password" name="pass pwd" id="pass" placeholder="Password" />
               </div>
-            </div>
-            <div class="form-group">
-              <div class="col-sm-offset-2 col-sm-10">
-                <button type="button" class="btn btn-default btn_signup">
-                  Submit
-                </button>
+              <div class="form-group">
+                <label for="re-pass"><i class="zmdi zmdi-lock-outline"></i></label>
+                <input type="password" name="re_pass"  id="re_pass" placeholder="Repeat your password" />
               </div>
-            </div>
-          </form>
-          <a href="/login">Already a user?</a>
+              <div class="form-group">
+                <input type="checkbox" name="agree-term" id="agree-term" class="agree-term" />
+                <label for="agree-term" class="label-agree-term"><span><span></span></span>I agree all statements in <a
+                    href="#" class="term-service">Terms of service</a></label>
+              </div>
+              <div class="form-group form-button">
+                <input type="button" name="signup" id="signup" class="form-submit btn_signup" value="Register" />
+              </div>
+            </form>
+          </div>
+          <div class="signup-image">
+            <figure><img src="images/signup-image.jpg" alt="sing up image"></figure>
+            <a href="/login" class="signup-image-link">I am already member</a>
+          </div>
         </div>
-        <div class="col-md-3"></div>
       </div>
-    </div>
-  </body>
+    </section>
+
+  </div>
+
+  <!-- JS -->
+  <script src="vendor/jquery/jquery.min.js"></script>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-23581568-13"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-23581568-13');
+  </script>
+
   <script>
     $(document).ready(function () {
+      $("input, select").on("focus", function () {
+        $(this)
+          .parent()
+          .find(".input-group-text")
+          .css("border-color", "#80bdff");
+      });
+      $("input, select").on("blur", function () {
+        $(this)
+          .parent()
+          .find(".input-group-text")
+          .css("border-color", "#ced4da");
+      });
       $(document).on("click", ".btn_signup", function () {
+        var name = $("#name").val();
         var email = $("#email").val();
-        var password = $("#pwd").val();
-        var cpassword = $("#cpwd").val();
+        var password = $("#pass").val();
+        var cpassword = $("#re_pass").val();
         if (password != cpassword) {
-          alert("Password not match");
+          alert("Confirm Password not match");
           return;
         }
         var data = {
+          name:name,
           email: email,
           password: password,
         };
@@ -97,4 +120,6 @@
       });
     });
   </script>
+</body>
+
 </html>

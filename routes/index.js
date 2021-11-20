@@ -1,17 +1,19 @@
 // #region ALL require file
 var express = require("express");
 var router = express.Router();
-const product = require("./Model/product");
-const category = require("./Model/category");
-const user = require("./Model/user");
-var bcrypt = require("bcryptjs");
+const product = require("../Model/product");
+const category = require("../Model/category");
 var jwt = require("jsonwebtoken");
 var multer = require("multer");
 const upload = multer({ dest: "tmp/csv/" });
 var csv = require("csvtojson");
-// #endregion
-/* GET home page. */
 
+//controller require
+const categoryController = require('../Controller/categoryController');
+const productController = require('../Controller/productController');
+const authController = require('../Controller/authController');
+//end
+//middleware
 const isValid = (req, res, next) => {
   var cookie = req.cookies.token;
   // console.log(cookie);
@@ -26,15 +28,19 @@ const isValid = (req, res, next) => {
   } catch (error) {
     res.status(401).send({ error: "please authenticate using  valid token" })
   }
-};
+}
+//end middleware
+
+//home page section
 router.get("/", function (req, res) {
-  res.render("index", { title: "STEP TO SOFT" });
+  res.render("index", { title: "Welcome" });
 });
 router.get("/employee", isValid, function (req, res) {
   res.render("employee", { title: "employee" });
 });
+//end home page section
 
-// #region product section
+//#region product section
 router.get("/product", isValid, async function (req, res) {
   var searchFilter = {};
   if (req.query.categoryId) {
@@ -49,62 +55,20 @@ router.get("/product", isValid, async function (req, res) {
       (Number(productList[i].price) * Number(productList[i].discount)) / 100;
     productList[i].actualPrice = actualPrice;
   }
+  for (var i = 0; i < productList.length; i++) {
+    var totalAmount =(Number(productList[i].actualPrice)*Number(productList[i].qty));
+    productList[i].totalAmount = totalAmount;
+  }
   res.render("product", {
     title: "Product",
     product: productList,
     categoryList: categoryList,
   });
 });
-router.post("/product-update", async function (req, res) {
-  var updateData = req.body;
-  if (updateData) {
-    updateData = JSON.parse(JSON.stringify(updateData));
-    var data = {
-      name: updateData.name,
-      qty: updateData.qty ? Number(updateData.qty) : 0,
-      price: updateData.price ? Number(updateData.price) : 0,
-      discount: updateData.discount ? Number(updateData.discount) : 0,
-    };
-    const updateProduct = await product.updateOne(
-      { _id: updateData.id },
-      { $set: data }
-    );
-    if (updateProduct) {
-      res.send({ success: "Product Updated successfully" });
-    } else {
-      res.send({ error: "Something went wrong" });
-    }
-  }
-});
-router.post("/product-delete", async function (req, res) {
-  var id = req.body.id;
-  if (id) {
-    const deleteResponse = await product.deleteOne({ _id: id });
-    res.send({ success: "Product deleted successfully" });
-  } else {
-    res.send({ error: "Id is required" });
-  }
-});
-router.post("/product-data", async function (req, res) {
-  var productData = req.body;
-  if (productData) {
-    productData = JSON.parse(JSON.stringify(productData));
-    var data = {
-      name: productData.name,
-      qty: productData.qty ? Number(productData.qty) : 0,
-      price: productData.price ? Number(productData.price) : 0,
-      discount: productData.discount ? Number(productData.discount) : 0,
-      categoryId: productData.categoryId,
-    };
-    const createProduct = await product.create(data);
-    if (createProduct) {
-      res.send({ success: "Product added successfully" });
-    } else {
-      res.send({ error: "Something went wrong" });
-    }
-  }
-});
-//csv
+router.post("/product-update", productController.productUpdate);
+router.post("/product-delete", productController.productDelete);
+router.post("/product-data", productController.productAdd);
+//csv upload section
 router.post("/create_location_viaCSV",
   upload.single("products"),
   (req, res) => {
@@ -157,58 +121,15 @@ router.post("/create_location_viaCSV",
 router.get("/category", isValid, async function (req, res) {
   try {
     const categoryList = await category.find({ user: req.user });
-    res.render("category", { title: "category", categoryList: categoryList });
+    res.render("category", { title: "Category", categoryList: categoryList });
   } catch (error) {
     res.status(404).send({ error: "Not found" })
   }
 
 });
-
-router.post("/category-data", isValid, async function (req, res) {
-  var categoryData = req.body;
-  if (categoryData) {
-    categoryData = JSON.parse(JSON.stringify(categoryData));
-    var data = {
-      user: req.user,
-      name: categoryData.name,
-      status: categoryData.status,
-    };
-    const createResponse = await category.create(data);
-    if (createResponse) {
-      res.send({ success: "category added successfully" });
-    } else {
-      res.send({ error: "Something went wrong" });
-    }
-  }
-});
-router.post("/category-update", async function (req, res) {
-  var updateData = req.body;
-  if (updateData) {
-    updateData = JSON.parse(JSON.stringify(updateData));
-    var data = {
-      name: updateData.name,
-      status: updateData.status,
-    };
-    const updateCategory = await category.updateOne(
-      { _id: updateData.id },
-      { $set: data }
-    );
-    if (updateCategory) {
-      res.send({ success: "category Updated successfully" });
-    } else {
-      res.send({ error: "Something went wrong" });
-    }
-  }
-});
-router.post("/category-delete", async function (req, res) {
-  var id = req.body.id;
-  if (id) {
-    const deleteResponse = await category.deleteOne({ _id: id });
-    res.send({ success: "category deleted successfully" });
-  } else {
-    res.send({ error: "Id is required" });
-  }
-});
+router.post("/category-data", isValid, categoryController.categoryAdd);
+router.post("/category-update", categoryController.categoryUpdate);
+router.post("/category-delete", categoryController.categoryDelete);
 // #endregion
 
 // #region Auth secton
@@ -220,78 +141,10 @@ router.get("/logout", function (req, res) {
   res.render("login", { title: "Login" });
 });
 router.get("/signup", function (req, res) {
-  res.render("signup", { title: "signup" });
+  res.render("signup", { title: "SignUp" });
 });
-router.post("/login-data", async function (req, res) {
-  if (req.body) {
-    req.body = JSON.parse(JSON.stringify(req.body));
-    var email = req.body.email;
-    var password = req.body.password;
-    const isUserExist = await user.findOne({ email: email });
-    if (isUserExist) {
-      // email match
-      bcrypt.compare(
-        password,
-        isUserExist.password,
-        async function (err, result) {
-          // result === true
-          if (result) {
-            //jwt
-            await jwt.sign(
-              {
-                user: isUserExist._id,
-              },
-              "mysecret",
-              { expiresIn: 60 * 60 },
-              (err, token) => {
-                if (err) {
-                  console.log(err);
-                } else {
-                  res.cookie("token", token);
-                  res.send({ success: "login success" });
-                }
-              }
-            );
-          } else {
-            res.send({ error: "Password not match" });
-          }
-        }
-      );
-    } else {
-      res.send({ error: "user not found" });
-    }
-  }
-});
-router.post("/signup-data", async function (req, res) {
-  if (req.body) {
-    req.body = JSON.parse(JSON.stringify(req.body));
-    var email = req.body.email;
-    const isUserExist = await user.findOne({ email: email });
-    if (!isUserExist) {
-      var password = req.body.password;
-      bcrypt.genSalt(10, function (err, salt) {
-        bcrypt.hash(password, salt, async function (err, hash) {
-          // Store hash in your password DB.
-          var data = {
-            email: email,
-            password: hash,
-            status: "N",
-            createdOn: Date.now(),
-            updatedOn: Date.now(),
-          };
-          const createResponse = await user.create(data);
-          if (createResponse) {
-            res.send({ success: "user registered successfully" });
-          } else {
-            res.send({ error: "something went wrong" });
-          }
-        });
-      });
-    } else {
-      res.send({ error: "user already exist" });
-    }
-  }
-});
+router.post("/login-data", authController.loginPost);
+router.post("/signup-data", authController.signupPost);
 // #endregion
 
 module.exports = router;
