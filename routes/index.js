@@ -5,7 +5,7 @@ const product = require("../Model/product");
 const category = require("../Model/category");
 var jwt = require("jsonwebtoken");
 var multer = require("multer");
-const upload = multer({ dest: "tmp/csv/" });
+const upload = multer({ dest: "Uploaded files/csv/" });
 var csv = require("csvtojson");
 
 //controller require
@@ -35,7 +35,7 @@ const isValid = (req, res, next) => {
 router.get("/", function (req, res) {
   res.render("index", { title: "Welcome" });
 });
-router.get("/employee", isValid, function (req, res) {
+router.get("/employee", function (req, res) {
   res.render("employee", { title: "employee" });
 });
 //end home page section
@@ -69,52 +69,7 @@ router.post("/product-update", productController.productUpdate);
 router.post("/product-delete", productController.productDelete);
 router.post("/product-data", productController.productAdd);
 //csv upload section
-router.post("/create_location_viaCSV",
-  upload.single("products"),
-  (req, res) => {
-    var failureArray = [];
-    const csvFilePath = req.file.path;
-    if (csvFilePath) {
-      csv()
-        .fromFile(csvFilePath)
-        .then((jsonObj) => {
-          var csvjson = jsonObj;
-          console.log("csvjson", JSON.stringify(csvjson));
-          for (let i = 0, p = Promise.resolve(); i < csvjson.length; i++) {
-            p = p.then(
-              (_) =>
-                new Promise((resolve) => {
-                  var data = {
-                    categoryId: csvjson[i].categoryId,
-                    name: csvjson[i].name,
-                    qty: Number(csvjson[i].qty),
-                    price: csvjson[i].price,
-                    discount: csvjson[i].discount,
-                  };
-                  var productData = new product(data);
-                  productData.save(function (err, result) {
-                    if (err) {
-                      failureArray.push(data);
-                      console.log(err);
-                      resolve();
-                    } else {
-                      console.log(result);
-                      if (i == csvjson.length - 1) {
-                        res.send({
-                          Success: " CSV file Successfully Inserted",
-                          failureArray: failureArray,
-                        });
-                      }
-                      resolve();
-                    }
-                  });
-                })
-            );
-          }
-        });
-    }
-  }
-);
+router.post("/create_location_viaCSV",upload.single("products"),productController.csvAdd);
 // #endregion
 
 // #region category section
