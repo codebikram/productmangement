@@ -30,13 +30,31 @@
     tr:hover {
       background-color: #efefef;
     }
-    .table-responsive{
-      margin-top: 4rem;
+
+    .header{
+      margin-bottom: 4rem;
     }
-    .txt{
+
+    .txt {
       width: 100px;
     }
+
+    .table-data {
+      margin: 0 auto;
+      background: #fff;
+      box-shadow: 0 15px 16.83px 0.17px rgba(0, 0, 0, 0.05);
+      -moz-box-shadow: 0 15px 16.83px 0.17px rgba(0, 0, 0, 0.05);
+      -webkit-box-shadow: 0 15px 16.83px 0.17px rgba(0, 0, 0, 0.05);
+      -o-box-shadow: 0 15px 16.83px 0.17px rgba(0, 0, 0, 0.05);
+      -ms-box-shadow: 0 15px 16.83px 0.17px rgba(0, 0, 0, 0.05);
+      border-radius: 20px;
+      -moz-border-radius: 20px;
+      -webkit-border-radius: 20px;
+      -o-border-radius: 20px;
+      -ms-border-radius: 20px;
+    }
   </style>
+
 </head>
 
 <body>
@@ -47,7 +65,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h4 class="modal-title">Add Category</h4>
-          <button type="button" class="close" data-dismiss="modal">
+          <button type="button" class="close text-danger" data-dismiss="modal">
             &times;
           </button>
         </div>
@@ -64,13 +82,13 @@
                 <option value="N">Non-active</option>
               </select>
             </div>
-            <button type="button" class="btn btn-default btn_add">
+            <button type="button" class="btn btn-success btn_add">
               Save
             </button>
           </form>
         </div>
         <div class="modal-footer">
-          <button type="button" class="btn btn-default" data-dismiss="modal">
+          <button type="button" class="btn btn-dark" data-dismiss="modal">
             Close
           </button>
         </div>
@@ -80,15 +98,17 @@
   <!-- end Model -->
   <% include ./partials/Navbar.ejs %>
 
-    <div class="container">
+    <div class="container header">
       <h1 class="text-center mt-4">Category Section</h1>
-      <button type="button" class="btn btn-primary float-right rounded" data-toggle="modal" data-target="#myModal">
-        Add Category
-      </button>
+      <div class="header-button">
+        <button type="button" class="btn btn-primary float-right rounded" data-toggle="modal" data-target="#myModal">
+          Add Category
+        </button>
+      </div>
     </div>
 
-    <div class=" container table-responsive">
-      <table class="table tbl_category">
+    <div class="container table-data table-responsive">
+      <table class="table tbl_category pt-3">
         <thead>
           <tr>
             <th>Name</th>
@@ -107,7 +127,8 @@
                 <%= categoryList[i].status%>
               </td>
               <td>
-                <button type="button" class="btn btn-success btn_edit far fa-edit" value="<%=categoryList[i]._id%>"></button>
+                <button type="button" class="btn btn-success btn_edit far fa-edit"
+                  value="<%=categoryList[i]._id%>"></button>
               </td>
               <td>
                 <button type="button" class="btn btn-danger btn_delete" value="<%=categoryList[i]._id%>"><i

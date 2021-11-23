@@ -28,7 +28,7 @@ exports.loginPost = async (req, res) => {
                                     console.log(err);
                                 } else {
                                     res.cookie("token", token);
-                                    res.send({ success: "login success" });
+                                    res.send({ success: "Login success" });
                                 }
                             }
                         );
@@ -38,7 +38,7 @@ exports.loginPost = async (req, res) => {
                 }
             );
         } else {
-            res.send({ error: "user not found" });
+            res.send({ error: "User not found" });
         }
     }
 }

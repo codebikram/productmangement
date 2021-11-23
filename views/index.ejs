@@ -1,35 +1,76 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <title><%= title %></title>
-    <link rel="stylesheet" href="/stylesheets/style.css" />
-    <link
-      rel="stylesheet"
-      href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"
-    />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-  </head>
-  <body>
-    <button type="button" class="btn btn-primary pull-right m-3 btn_login">
-      Login
-    </button>
-    <button type="button" class="btn btn-primary pull-right btn_signup">
-      signup
-    </button>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-    <a href="/employee">Click to go to Employee page</a>
-  </body>
-  <script>
-    $(document).ready(function () {
-      $(document).on("click", ".btn_login", function () {
-        window.location.href = window.location.pathname + "login";
-      });
-      $(document).on("click", ".btn_signup", function () {
-        // console.log("window.location.pathname", window.location.pathname);
-        window.location.href = window.location.pathname + "signup";
-      });
+
+<head>
+  <title>
+    <%= title %>
+  </title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=M+PLUS+Code+Latin&family=Ubuntu&display=swap');
+
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    img {
+      height: 50px;
+
+    }
+
+    nav {
+      font-family: 'Ubuntu', sans-serif;
+      font-size: 16px;
+    }
+
+    .btn_logout {
+      display: none;
+
+    }
+  </style>
+</head>
+
+<body>
+  <% include ./partials/Navbar.ejs %>
+    <div class="mt-5 container text-center text-capitalize">
+      <div class="p-4">
+        <h2>Welcome to Product<span class="text-primary">Board</span> System</h2>
+
+        <p>This is a Product Mangemet System where you can store your product details
+          category wise. You can add, update, delete your category and product data.</p>
+      </div>
+
+      <div class="p-4">
+        <button type="button" class="btn btn-primary mx-3 btn_login">
+          Click Here to Login
+        </button>
+        <button type="button" class="btn btn-success btn_signup">
+          Click Here to Register
+        </button>
+      </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
+      integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
+      crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+      integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+      crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
+      integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+      crossorigin="anonymous"></script>
+</body>
+<script>
+  $(document).ready(function () {
+    $(document).on("click", ".btn_login", function () {
+      window.location.href = window.location.pathname + "login";
     });
-  </script>
+    $(document).on("click", ".btn_signup", function () {
+      window.location.href = window.location.pathname + "signup";
+    });
+  });
+</script>
+
 </html>

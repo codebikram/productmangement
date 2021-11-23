@@ -9,7 +9,7 @@ var usersRouter = require("./routes/users");
 
 var app = express();
 mongoose
-  .connect("mongodb://localhost/my_database", {
+  .connect("mongodb://localhost/productboard", {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useFindAndModify: false,

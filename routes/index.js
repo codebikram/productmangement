@@ -33,7 +33,7 @@ const isValid = (req, res, next) => {
 
 //home page section
 router.get("/", function (req, res) {
-  res.render("index", { title: "Welcome" });
+  res.render("index", { title: "ProductBoard" });
 });
 router.get("/employee", function (req, res) {
   res.render("employee", { title: "employee" });
@@ -56,10 +56,11 @@ router.get("/product", isValid, async function (req, res) {
     productList[i].actualPrice = actualPrice;
   }
   for (var i = 0; i < productList.length; i++) {
-    var totalAmount =(Number(productList[i].actualPrice)*Number(productList[i].qty));
+    var totalAmount = (Number(productList[i].actualPrice) * Number(productList[i].qty));
     productList[i].totalAmount = totalAmount;
   }
   res.render("product", {
+    user: req.user,
     title: "Product",
     product: productList,
     categoryList: categoryList,
@@ -69,14 +70,60 @@ router.post("/product-update", productController.productUpdate);
 router.post("/product-delete", productController.productDelete);
 router.post("/product-data", productController.productAdd);
 //csv upload section
-router.post("/create_location_viaCSV",upload.single("products"),productController.csvAdd);
+router.post("/create_location_viaCSV", upload.single("products"), (req, res) => {
+  var failureArray = [];
+  const csvFilePath = req.file.path;
+  if (csvFilePath) {
+    csv()
+      .fromFile(csvFilePath)
+      .then((jsonObj) => {
+        var csvjson = jsonObj;
+        console.log("csvjson", JSON.stringify(csvjson));
+        for (let i = 0, p = Promise.resolve(); i < csvjson.length; i++) {
+          p = p.then(
+            (_) =>
+              new Promise((resolve) => {
+                var data = {
+                  categoryId: csvjson[i].categoryId,
+                  name: csvjson[i].name,
+                  qty: Number(csvjson[i].qty),
+                  price: csvjson[i].price,
+                  discount: csvjson[i].discount,
+                };
+                var productData = new product(data);
+                productData.save(function (err, result) {
+                  if (err) {
+                    failureArray.push(data);
+                    console.log(err);
+                    resolve();
+                  } else {
+                    console.log(result);
+                    if (i == csvjson.length - 1) {
+                      res.send({
+                        success: " CSV file Successfully Inserted",
+                        failureArray: failureArray,
+                      });
+                    }
+                    resolve();
+                  }
+                });
+              })
+          );
+        }
+      });
+  }
+});
 // #endregion
 
 // #region category section
 router.get("/category", isValid, async function (req, res) {
   try {
     const categoryList = await category.find({ user: req.user });
-    res.render("category", { title: "Category", categoryList: categoryList });
+    res.render("category", {
+      user: req.user,
+      title: "Category",
+      categoryList: categoryList
+    });
   } catch (error) {
     res.status(404).send({ error: "Not found" })
   }

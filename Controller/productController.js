@@ -51,48 +51,5 @@ exports.productDelete = async (req, res) => {
   }
 
 }
-exports.csvAdd = (req, res) => {
-  var failureArray = [];
-  const csvFilePath = req.file.path;
-  if (csvFilePath) {
-    csv()
-      .fromFile(csvFilePath)
-      .then((jsonObj) => {
-        var csvjson = jsonObj;
-        console.log("csvjson", JSON.stringify(csvjson));
-        for (let i = 0, p = Promise.resolve(); i < csvjson.length; i++) {
-          p = p.then(
-            (_) =>
-              new Promise((resolve) => {
-                var data = {
-                  categoryId: csvjson[i].categoryId,
-                  name: csvjson[i].name,
-                  qty: Number(csvjson[i].qty),
-                  price: csvjson[i].price,
-                  discount: csvjson[i].discount,
-                };
-                var productData = new product(data);
-                productData.save(function (err, result) {
-                  if (err) {
-                    failureArray.push(data);
-                    console.log(err);
-                    resolve();
-                  } else {
-                    console.log(result);
-                    if (i == csvjson.length - 1) {
-                      res.send({
-                        Success: " CSV file Successfully Inserted",
-                        failureArray: failureArray,
-                      });
-                    }
-                    resolve();
-                  }
-                });
-              })
-          );
-        }
-      });
-  }
-}
 
 
